@@ -23,18 +23,23 @@ export async function adminLogin(page: Page) {
 // helper for courier login
 export async function courierLogin(
   page: Page,
-  email: string,
-  password: string,
+  email?: string,
+  password?: string,
 ) {
   const url = process.env.COURIER_URL;
-  if (!url) {
-    throw new Error("Missing COURIER_URL in environment variables");
+  const resolvedEmail = email ?? process.env.COURIER_EMAIL;
+  const resolvedPassword = password ?? process.env.COURIER_PASSWORD;
+
+  if (!url || !resolvedEmail || !resolvedPassword) {
+    throw new Error(
+      "Missing COURIER_URL, COURIER_EMAIL, or COURIER_PASSWORD in environment variables",
+    );
   }
 
   await page.goto(url);
   await page.waitForLoadState("networkidle");
-  await page.getByRole("textbox", { name: "Email" }).fill(email);
-  await page.getByRole("textbox", { name: "Password" }).fill(password);
+  await page.getByRole("textbox", { name: "Email" }).fill(resolvedEmail);
+  await page.getByRole("textbox", { name: "Password" }).fill(resolvedPassword);
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForLoadState("networkidle", { timeout: 20000 });
 }
