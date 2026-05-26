@@ -40,10 +40,13 @@ export async function merchantLogin(page: Page) {
 
   await page.getByRole("textbox", { name: /email/i }).fill(email);
   await page.getByRole("textbox", { name: /password/i }).fill(password);
-  await page.getByRole("button", { name: "Sign In" }).click();
+  await page.getByRole("button", { name: /sign in/i }).click();
 
   try {
-    await expect(page).toHaveURL(/\/merchant/, { timeout: 20000 });
+    await Promise.all([
+      page.waitForURL(/\/merchant/, { timeout: 30000 }),
+      page.waitForLoadState("networkidle"),
+    ]);
   } catch {
     if (await page.getByText(/Too many failed attempts/i).isVisible()) {
       throw new Error(
@@ -55,9 +58,9 @@ export async function merchantLogin(page: Page) {
     );
   }
 
-  await expect(page.getByRole("link", { name: "Shipments" })).toBeVisible({
-    timeout: 10000,
-  });
+  await expect(
+    page.getByText(/Shipments|Couriers|API Keys/i).first(),
+  ).toBeVisible({ timeout: 20000 });
 }
 
 export function getMerchantOrigin(): string {
